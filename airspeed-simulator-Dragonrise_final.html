@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Enhanced Interactive Airspeed Simulator</title>
+    <style>
+    
+    /* Basic Styling */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      background-color: #f9fafb;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      gap: 2rem;
+      width: 100%;
+      max-width: 64rem;
+    }
+    
+    .title {
+      text-align: center;
+    }
+    
+    h1 {
+      color: #1d4ed8;
+      font-size: 1.875rem;
+      font-weight: bold;
+    }
+    
+    .subtitle {
+      color: #4b5563;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+    
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    
+    @media (min-width: 768px) {
+      .controls-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    .control-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      background-color: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .control-label {
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    .control-help {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    .button-group {
+      display: flex;
+      justify-content: space-around;
+    }
+    
+    .direction-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .active {
+      background-color: #2563eb;
+      color: white;
+    }
+    
+    .inactive {
+      background-color: #e5e7eb;
+      color: #374151;
+    }
+    
+    .visualization {
+      background-color: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .walkway {
+      position: relative;
+      height: 6rem;
+      background-color: #d1d5db;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      border: 2px solid #999;
+    }
+    
+    .walkway-stripes {
+      position: absolute;
+      inset: 0;
+      width: 200%;
+      background-image: repeating-linear-gradient(90deg, transparent, transparent 20px, #999 20px, #999 40px);
+    }
+    
+    .walkway-container {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    
+    .walkway-content {
+      position: absolute;
+      inset: 0;
+      width: 200%;
+      display: flex;
+      align-items: center;
+    }
+    
+    .walkway-person-container {
+      position: absolute;
+      top: 50%;
+      left: 25%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .center-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background-color: #6b7280;
+    }
+    
+    .person {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    
+    .person-body {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 9999px;
+      background-color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      position: relative;
+    }
+    
+    .legs {
+      position: absolute;
+      bottom: -2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.125rem;
+    }
+    
+    .leg {
+      width: 0.125rem;
+      height: 1rem;
+      background-color: #2563eb;
+    }
+    
+    .direction-indicator {
+      position: absolute;
+      top: 0.5rem;
+      right: 1rem;
+      background-color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #bfdbfe;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      color: #2563eb;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+    
+    .direction-arrow {
+      font-size: 1.25rem;
+      margin-left: 0.25rem;
+    }
+    
+    .speed-indicators {
+      position: absolute;
+      bottom: 0.5rem;
+      left: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      z-index: 10;
+    }
+    
+    .speed-indicator {
+      background-color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #d1d5db;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+    
+    .speed-ias span {
+      color: #2563eb;
+    }
+    
+    .speed-tas {
+      background-color: #fee2e2;
+      border-color: #fca5a5;
+    }
+    
+    .speed-tas span {
+      color: #dc2626;
+    }
+    
+    .speed-gs {
+      background-color: #d1fae5;
+      border-color: #6ee7b7;
+    }
+    
+    .speed-gs span {
+      color: #047857;
+    }
+    
+    .walkway-speed {
+      position: absolute;
+      bottom: 0.5rem;
+      right: 0.5rem;
+      background-color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #d1d5db;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    @media (min-width: 768px) {
+      .results-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+    
+    .result-card {
+      padding: 1rem;
+      border-radius: 0.5rem;
+    }
+    
+    .result-ias {
+      background-color: #eff6ff;
+      border-left: 4px solid #3b82f6;
+    }
+    
+    .result-tas {
+      background-color: #fee2e2;
+      border-left: 4px solid #ef4444;
+    }
+    
+    .result-gs {
+      background-color: #d1fae5;
+      border-left: 4px solid #10b981;
+    }
+    
+    .result-title {
+      font-weight: bold;
+    }
+    
+    .result-ias .result-title {
+      color: #1d4ed8;
+    }
+    
+    .result-tas .result-title {
+      color: #b91c1c;
+    }
+    
+    .result-gs .result-title {
+      color: #047857;
+    }
+    
+    .result-description {
+      font-size: 0.875rem;
+    }
+    
+    .explanation {
+      background-color: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .explanation-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    @media (min-width: 768px) {
+      .explanation-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+    
+    .explanation-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .explanation-title {
+      font-weight: bold;
+    }
+    
+    .explanation-ias .explanation-title {
+      color: #1d4ed8;
+    }
+    
+    .explanation-tas .explanation-title {
+      color: #b91c1c;
+    }
+    
+    .explanation-gs .explanation-title {
+      color: #047857;
+    }
+    
+    .explanation-text {
+      font-size: 0.875rem;
+    }
+    
+    .footer {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    .copyright {
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    /* Animations */
+    @keyframes personWalking {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-3px); }
+    }
+    
+    @keyframes legWalk {
+      0% { transform: rotate(-15deg); }
+      100% { transform: rotate(15deg); }
+    }
+    
+    @keyframes slideWalkwayRight {
+      0% { transform: translateX(-50%); }
+      100% { transform: translateX(0%); }
+    }
+    
+    @keyframes slideWalkwayLeft {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    
+    @keyframes personWalkwayRight {
+      0% { left: 0%; }
+      100% { left: 100%; }
+    }
+    
+    @keyframes personWalkwayLeft {
+      0% { left: 100%; }
+      100% { left: 0%; }
+    }
+  
+/* Air molecule bubble styling */
+.air-bubble-container {
+  z-index: 5;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.air-bubble {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: rgba(100, 180, 255, 0.6);
+  border-radius: 50%;
+}
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+<!-- Title and introduction -->
+<div class="title">
+<h1>Interactive Airspeed Simulator</h1>
+<p class="subtitle">Adjust the sliders to see how different factors affect IAS, TAS, and GS using the moving walkway analogy</p>
+</div>
+<!-- Controls Section -->
+<div class="controls-grid">
+<div class="control-card">
+<label class="control-label">Walking Speed (IAS): <span id="walking-effort-value">3</span> kts</label>
+<input class="slider" id="walking-effort" max="10" min="0" step="1" type="range" value="3"/>
+<p class="control-help">Your physical walking speed (like aircraft power setting)</p>
+</div>
+<div class="control-card">
+<label class="control-label">Walkway Speed (Wind Speed): <span id="walkway-speed-value">5</span> kts</label>
+<input class="slider" id="walkway-speed" max="10" min="0" step="1" type="range" value="5"/>
+<p class="control-help">How fast the walkway is moving (like wind speed)</p>
+</div>
+<div class="control-card">
+<label class="control-label">Altitude (Air Density): <span id="altitude-value">0</span> ft</label>
+<input class="slider" id="altitude-effect" max="50" min="0" step="5" type="range" value="0"/>
+<p class="control-help">Higher altitude = thinner air = TAS higher than IAS<br/><span style="color:#2563eb;">(blue bubbles = air molecules)</span></p>
+</div>
+<div class="control-card">
+<label class="control-label">Walkway Operating Direction</label>
+<div class="button-group">
+<button class="direction-btn inactive" id="direction-left">
+            Left (Headwind) ←
+          </button>
+<button class="direction-btn active" id="direction-right">
+            Right (Tailwind) →
+          </button>
+</div>
+<p class="control-help">Direction affects ground speed (like headwind vs tailwind)</p>
+</div>
+</div>
+<!-- Visualization Section -->
+<div class="visualization">
+<h2>Moving Walkway Visualization</h2>
+<div class="walkway"><div class="air-bubble-container" id="air-bubble-container"></div>
+<!-- Walkway stripes with animation -->
+<div class="walkway-container">
+<div class="walkway-content" id="walkway-content">
+<div class="walkway-stripes" id="walkway-stripes"></div>
+<!-- Person attached to walkway (when walking speed = 0) -->
+<div class="walkway-person-container" id="walkway-person-container" style="display: none;">
+<div class="person-body">
+                P
+              </div>
+</div>
+</div>
+</div>
+<!-- Center line -->
+<div class="center-line"></div>
+<!-- Person indicator with animated walking (when walking speed > 0) -->
+<div class="person" id="person" style="left: 50%;">
+<div class="person-body" id="person-body">
+            P
+            <div class="legs" id="legs">
+<div class="leg" id="leg-left"></div>
+<div class="leg" id="leg-right"></div>
+</div>
+</div>
+</div>
+<!-- Direction indicator -->
+<div class="direction-indicator">
+<span>Walkway</span>
+<span class="direction-arrow" id="direction-arrow">→</span>
+</div>
+<!-- Speed Indicators -->
+<div class="speed-indicators">
+<div class="speed-indicator speed-ias">
+<span>IAS:</span> <span id="ias-value">3</span> kts
+          </div>
+<div class="speed-indicator speed-tas">
+<span>TAS:</span> <span id="tas-value">3</span> kts
+          </div>
+<div class="speed-indicator speed-gs">
+<span>GS:</span> <span id="gs-value">8</span> kts
+          </div>
+</div>
+<!-- Walkway speed indicator -->
+<div class="walkway-speed">
+          Walkway Speed (Wind): <span id="walkway-indicator">5</span> kts
+        </div>
+</div>
+</div>
+<!-- Results Section -->
+<div class="results-grid">
+<div class="result-card result-ias">
+<h3 class="result-title">IAS: <span id="result-ias">3</span> kts</h3>
+<p class="result-description">Your walking speed relative to the walkway</p>
+</div>
+<div class="result-card result-tas">
+<h3 class="result-title">TAS: <span id="result-tas">3</span> kts</h3>
+<p class="result-description">IAS adjusted for altitude (air density)</p>
+</div>
+<div class="result-card result-gs">
+<h3 class="result-title">GS: <span id="result-gs">8</span> kts</h3>
+<p class="result-description" id="gs-description">Your actual speed over the ground</p>
+</div>
+</div>
+<!-- Explanation Section -->
+<div class="explanation">
+<h2>Understanding Airspeed Concepts</h2>
+<div class="explanation-grid">
+<div class="explanation-item explanation-ias">
+<h3 class="explanation-title">Indicated Airspeed (IAS)</h3>
+<p class="explanation-text">
+            This is what your airspeed indicator shows in the cockpit. It represents your speed relative to the air mass around you, like your walking speed on the moving walkway.
+          </p>
+</div>
+<div class="explanation-item explanation-tas">
+<h3 class="explanation-title">True Airspeed (TAS)</h3>
+<p class="explanation-text">
+            Your actual speed through the air. At higher altitudes (thinner air), TAS is higher than IAS because there's less air resistance. Aircraft fly faster at altitude for this reason.
+          </p>
+</div>
+<div class="explanation-item explanation-gs">
+<h3 class="explanation-title">Ground Speed (GS)</h3>
+<p class="explanation-text">
+            Your actual speed over the ground, including wind effects. Tailwinds increase GS; headwinds reduce it. GS affects your flight time and fuel planning.
+          </p>
+</div>
+</div>
+</div>
+<div class="footer">
+<div class="copyright">Copyright © 2025 Dragonrise Aviation Academy. All rights reserved</div>
+</div>
+</div>
+
+<script>
+
+    // State variables
+    let walkingEffort = 3;
+    let walkwaySpeed = 5;
+    let altitudeEffect = 0;
+    let walkingDirection = 1; // 1 = right (tailwind), -1 = left (headwind)
+    
+    // Calculated values
+    let ias = 3;
+    let tas = 3;
+    let gs = 8;
+    
+    // Animation state
+    let personPosition = 50;
+    let animationId = null;
+    let lastTime = 0;
+    
+    // DOM Elements
+    const walkingEffortSlider = document.getElementById('walking-effort');
+    const walkwaySpeedSlider = document.getElementById('walkway-speed');
+    const altitudeEffectSlider = document.getElementById('altitude-effect');
+    const directionLeftBtn = document.getElementById('direction-left');
+    const directionRightBtn = document.getElementById('direction-right');
+    
+    const walkingEffortValue = document.getElementById('walking-effort-value');
+    const walkwaySpeedValue = document.getElementById('walkway-speed-value');
+    const altitudeValue = document.getElementById('altitude-value');
+    const directionArrow = document.getElementById('direction-arrow');
+    
+    const walkwayStripes = document.getElementById('walkway-stripes');
+    const person = document.getElementById('person');
+    const personBody = document.getElementById('person-body');
+    const legs = document.getElementById('legs');
+    const legLeft = document.getElementById('leg-left');
+    const legRight = document.getElementById('leg-right');
+    
+    const iasValue = document.getElementById('ias-value');
+    const tasValue = document.getElementById('tas-value');
+    const gsValue = document.getElementById('gs-value');
+    const walkwayIndicator = document.getElementById('walkway-indicator');
+    
+    const resultIas = document.getElementById('result-ias');
+    const resultTas = document.getElementById('result-tas');
+    const resultGs = document.getElementById('result-gs');
+    const gsDescription = document.getElementById('gs-description');
+    
+    // Update calculations
+    function updateCalculations() {
+      // IAS is directly the walking effort
+      ias = walkingEffort;
+      
+      // TAS is IAS modified by altitude effect (air density)
+      const altitudeFactor = 1 + (altitudeEffect / 100);
+      tas = parseFloat((ias * altitudeFactor).toFixed(1));
+      
+      // GS is TAS plus walkway speed (considering direction)
+      const windEffect = walkingDirection * walkwaySpeed;
+      gs = parseFloat((tas + windEffect).toFixed(1));
+      
+      // Update DOM with new values
+      iasValue.textContent = ias;
+      tasValue.textContent = tas;
+      gsValue.textContent = gs;
+      
+      resultIas.textContent = ias;
+      resultTas.textContent = tas;
+      resultGs.textContent = gs;
+      
+      // Update GS description based on value
+      if (gs < 0) {
+        gsDescription.textContent = 'Moving backward due to strong headwind!';
+      } else {
+        gsDescription.textContent = 'Your actual speed over the ground';
+      }
+    }
+    
+    // Update walkway animation based on speed and direction
+    function updateWalkwayAnimation() {
+      const walkwayContent = document.getElementById('walkway-content');
+      walkwayContent.style.animation = 'none';
+      
+      if (walkwaySpeed > 0) {
+        const animationName = walkingDirection === 1 ? 'slideWalkwayRight' : 'slideWalkwayLeft';
+        const duration = Math.max(2, 40 / walkwaySpeed);
+        
+        // Force reflow
+        void walkwayContent.offsetWidth;
+        
+        walkwayContent.style.animation = `${animationName} ${duration}s linear infinite`;
+      }
+      
+      // Update direction arrow
+      directionArrow.textContent = walkingDirection === 1 ? '→' : '←';
+      
+      // Update walkway speed indicator
+      walkwayIndicator.textContent = walkwaySpeed;
+    }
+    
+    // Get walking animation speed based on effort
+    function getWalkingAnimationSpeed() {
+      if (walkingEffort === 0) return 0;
+      const baseSpeed = 0.5; // base animation speed in seconds
+      const effort = Math.max(1, walkingEffort); // avoid division by zero
+      return Math.max(0.2, Math.min(1, baseSpeed / effort)); // between 0.2s and 1s
+    }
+    
+    // Update person walking animation
+    function updatePersonAnimation() {
+      // Determine if the person is walking
+      const isWalking = walkingEffort > 0;
+      
+      // Determine if the person should be attached to the walkway
+      const isAttachedToWalkway = walkingEffort === 0;
+      
+      // Get references to person elements
+      const walkingPerson = document.getElementById('person');
+      const walkwayPersonContainer = document.getElementById('walkway-person-container');
+      
+      if (isAttachedToWalkway) {
+        // Show person attached to walkway, hide walking person
+        walkingPerson.style.display = 'none';
+        walkwayPersonContainer.style.display = 'block';
+      } else {
+        // Show walking person, hide person attached to walkway
+        walkingPerson.style.display = 'block';
+        walkwayPersonContainer.style.display = 'none';
+        
+        // Reset transform to vertical center only
+        walkingPerson.style.transform = 'translateY(-50%)';
+        
+        // Set walking animations
+        const walkSpeed = getWalkingAnimationSpeed();
+        personBody.style.animation = `personWalking ${walkSpeed}s infinite alternate`;
+        legLeft.style.animation = `legWalk ${walkSpeed}s infinite alternate`;
+        legRight.style.animation = `legWalk ${walkSpeed}s infinite alternate-reverse`;
+      }
+    }
+    
+    // Animation loop for person movement
+    function animate(time) {
+      if (!lastTime) lastTime = time;
+      const deltaTime = time - lastTime;
+      
+      // Only update position every ~50ms for consistent speed across devices
+      if (deltaTime > 50) {
+        lastTime = time;
+        
+        // Calculate new position based on ground speed
+        let newPosition = personPosition + (gs * 0.1);
+        
+        // Loop back when reaching the edges
+        if (newPosition > 100) {
+          newPosition = 0;
+        } else if (newPosition < 0) {
+          newPosition = 100;
+        }
+        
+        personPosition = newPosition;
+        person.style.left = `${personPosition}%`;
+      }
+      
+      // Continue animation loop
+      animationId = requestAnimationFrame(animate);
+    }
+    
+    // Start/stop animation based on conditions
+    function updateAnimation() {
+      // Clean up previous animation if any
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      
+      // Only start animation if walking effort > 0
+      if (walkingEffort > 0) {
+        animationId = requestAnimationFrame(animate);
+      }
+      
+      // Update the person animation
+      updatePersonAnimation();
+    }
+    
+    // Event listeners for sliders
+    walkingEffortSlider.addEventListener('input', function() {
+      walkingEffort = parseFloat(this.value);
+      walkingEffortValue.textContent = walkingEffort;
+      
+      updateCalculations();
+      updatePersonAnimation();
+      updateAnimation();
+    });
+    
+    walkwaySpeedSlider.addEventListener('input', function() {
+      walkwaySpeed = parseFloat(this.value);
+      walkwaySpeedValue.textContent = walkwaySpeed;
+      
+      updateCalculations();
+      updateWalkwayAnimation();
+    });
+    
+    altitudeEffectSlider.addEventListener('input', function() {
+      altitudeEffect = parseFloat(this.value);
+      altitudeValue.textContent = altitudeEffect * 200;
+      
+      updateCalculations();
+    });
+    
+    // Event listeners for direction buttons
+    directionLeftBtn.addEventListener('click', function() {
+      walkingDirection = -1;
+      
+      directionLeftBtn.classList.add('active');
+      directionLeftBtn.classList.remove('inactive');
+      
+      directionRightBtn.classList.add('inactive');
+      directionRightBtn.classList.remove('active');
+      
+      updateCalculations();
+      updateWalkwayAnimation();
+    });
+    
+    directionRightBtn.addEventListener('click', function() {
+      walkingDirection = 1;
+      
+      directionRightBtn.classList.add('active');
+      directionRightBtn.classList.remove('inactive');
+      
+      directionLeftBtn.classList.add('inactive');
+      directionLeftBtn.classList.remove('active');
+      
+      updateCalculations();
+      updateWalkwayAnimation();
+    });
+    
+    // Initialize the visualization
+    function init() {
+      updateCalculations();
+      updateWalkwayAnimation();
+      updatePersonAnimation();
+      updateAnimation();
+    }
+    
+    // Start the visualization
+    init();
+  
+
+
+// ✅ Enhanced Air Molecule Bubble Logic (Dynamic density based on altitude)
+const airBubbleContainer = document.getElementById('air-bubble-container');
+
+// Increase grid density for more air bubbles
+const gridCols = 20; // increased number of bubbles horizontally
+const gridRows = 12; // increased number of bubbles vertically
+let bubbles = [];
+
+// Generates bubbles initially
+function generateBubbles() {
+  airBubbleContainer.innerHTML = '';
+  bubbles = [];
+
+  for (let r = 0; r < gridRows; r++) {
+    for (let c = 0; c < gridCols; c++) {
+      const bubble = document.createElement('div');
+      bubble.classList.add('air-bubble');
+      bubble.dataset.row = r;
+      bubble.dataset.col = c;
+      airBubbleContainer.appendChild(bubble);
+      bubbles.push(bubble);
+    }
+  }
+}
+
+// Dynamically update spacing between air bubbles based on altitude
+function updateBubbleSpacing() {
+  const altitudeMaxEffect = 50; // max altitude effect from slider
+  const altitudeScalingFactor = 1 + (altitudeEffect / altitudeMaxEffect * 3); // controls spacing increase clearly at high altitudes
+
+  const baseSpacingX = 100 / (gridCols + 1);
+  const baseSpacingY = 100 / (gridRows + 1);
+
+  bubbles.forEach(bubble => {
+    const row = parseInt(bubble.dataset.row);
+    const col = parseInt(bubble.dataset.col);
+
+    // Calculate spacing dynamically
+    const spacingX = baseSpacingX * altitudeScalingFactor;
+    const spacingY = baseSpacingY * altitudeScalingFactor;
+
+    const left = (col + 1) * spacingX;
+    const top = (row + 1) * spacingY;
+
+    bubble.style.left = `${left}%`;
+    bubble.style.top = `${top}%`;
+  });
+}
+
+// Ensure the air bubbles remain clearly on top of other layers
+function elevateAirBubbleLayer() {
+  airBubbleContainer.style.zIndex = "10"; // clearly above walkway elements
+}
+
+// Initialize air bubble visualization
+function initAirBubbles() {
+  generateBubbles();
+  updateBubbleSpacing();
+  elevateAirBubbleLayer();
+}
+
+// Hook into existing slider input listener for altitude slider
+altitudeEffectSlider.addEventListener('input', function() {
+  altitudeEffect = parseFloat(this.value);
+  altitudeValue.textContent = altitudeEffect * 200;
+
+  updateCalculations();
+  updateBubbleSpacing(); // Update bubble spacing dynamically with slider
+});
+
+// Ensure bubbles render on first load or DOM ready
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  initAirBubbles();
+} else {
+  window.addEventListener("DOMContentLoaded", () => {
+    initAirBubbles();
+  });
+}
+
+// Synchronize air bubbles with walkway movement
+function animateBubblesWithWalkway() {
+  const walkwayContent = document.getElementById('walkway-content');
+  const computedStyle = window.getComputedStyle(walkwayContent);
+  const matrix = new WebKitCSSMatrix(computedStyle.transform);
+  const walkwayOffsetX = matrix.m41;
+
+  airBubbleContainer.style.transform = `translateX(${walkwayOffsetX}px)`;
+  requestAnimationFrame(animateBubblesWithWalkway);
+}
+
+// Start synchronization animation
+
+
+
+
+// Exact synchronization of air bubbles with dynamic separation based on altitude
+function dynamicSyncBubbles() {
+  const walkwayContent = document.getElementById('walkway-content');
+  const computedStyle = window.getComputedStyle(walkwayContent);
+  const matrix = new WebKitCSSMatrix(computedStyle.transform);
+  const walkwayOffsetX = matrix.m41;
+  const walkwayWidth = walkwayContent.offsetWidth / 2;
+
+  const percentWalkwayMovement = (walkwayOffsetX / walkwayWidth) * 100;
+
+  // Dynamic spacing adjustment based on altitude
+  const altitudeMaxEffect = 50;
+  const altitudeScalingFactor = 1 + (altitudeEffect / altitudeMaxEffect * 3); 
+
+  const baseSpacingX = (100 / (gridCols + 1)) * altitudeScalingFactor;
+  const baseSpacingY = (100 / (gridRows + 1)) * altitudeScalingFactor;
+
+  bubbles.forEach(bubble => {
+    const col = parseInt(bubble.dataset.col);
+    const row = parseInt(bubble.dataset.row);
+
+    let leftPosition = ((col + 1) * baseSpacingX + percentWalkwayMovement) % 100;
+    if (leftPosition < 0) leftPosition += 100;
+
+    let topPosition = (row + 1) * baseSpacingY;
+
+    bubble.style.left = `${leftPosition}%`;
+    bubble.style.top = `${topPosition}%`;
+  });
+
+  requestAnimationFrame(dynamicSyncBubbles);
+}
+
+// Initialize dynamic bubble synchronization
+dynamicSyncBubbles();
+
+
+
+
+</script>
+</body>
+</html>
